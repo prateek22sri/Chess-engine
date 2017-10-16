@@ -7,8 +7,21 @@ Author : Prateek srivastava
 import sys
 from copy import deepcopy
 
-
-# from pprint import pprint
+move_pattern = {
+    0: None,
+    1: [[(-1, 0)], 1],
+    -1: [[(1, 0)], 1],
+    2: [[(1, 0), (-1, 0), (0, 1), (0, -1)], 9],
+    -2: [[(1, 0), (-1, 0), (0, 1), (0, -1)], 9],
+    3: [[(-2, 1), (-2, -1), (-1, 2), (1, 2), (-1, -2), (1, -2), (2, -1), (2, 1)], 1],
+    -3: [[(-2, 1), (-2, -1), (-1, 2), (1, 2), (-1, -2), (1, -2), (2, -1), (2, 1)], 1],
+    4: [[(1, 1), (-1, -1), (-1, 1), (1, -1)], 9],
+    -4: [[(1, 1), (-1, -1), (-1, 1), (1, -1)], 9],
+    5: [[(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)], 9],
+    -5: [[(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)], 9],
+    6: [[(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)], 1],
+    -6: [[(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)], 1]
+}
 
 
 def convert_to_board(string_board):
@@ -81,348 +94,68 @@ def visualize_board(board):
     print(str)
 
 
+def sum_board(board):
+    return sum([sum(x) for x in board])
+
+
 def move(board, index):
     i, j = index
+    if board[i][j] == 0:
+        print("Error: Can't move an empty space")
+        return None
     moves = []
+    for a, b in move_pattern[board[i][j]][0]:
+        x = a
+        y = b
+        for z in range(move_pattern[board[i][j]][1]):
+            # to keep the movements inside the board
+            if 0 <= i + x <= 7 and 0 <= j + y <= 7:
+                # if the new place is not blank
+                if board[i + x][j + y] != 0:
+                    if board[i][j] == 1 or board[i][j] == -1:
+                        break
+                    new_board = deepcopy(board)
+                    new_board[i + x][j + y] = new_board[i][j]
+                    new_board[i][j] = 0
+                    # if the blockade is because of an opponent
+                    if abs(new_board[i + x][j + y] + board[i + x][j + y]) <= abs(board[i + x][j + y]) or abs(
+                                    new_board[i + x][j + y] + board[i + x][j + y]) <= abs(new_board[i + x][j + y]):
+                        moves.append(new_board)
+                    break
+                new_board = deepcopy(board)
+                new_board[i + x][j + y] = new_board[i][j]
+                new_board[i][j] = 0
+                moves.append(new_board)
+            x += a
+            y += b
 
-    # if the piece is a small pawn - p
+    # if the piece is small pawn i.e. 'p' (1)
     if board[i][j] == 1:
-
-        # regular move
-        if board[i - 1][j] == 0:
+        # if there is a scope to attack
+        if board[i - 1][j - 1] < 0:
             new_board = deepcopy(board)
-            new_board[i - 1][j] = 1
+            new_board[i - 1][j - 1] = board[i][j]
             new_board[i][j] = 0
             moves.append(new_board)
-            print("regular move")
+        if board[i - 1][j + 1] < 0:
+            new_board = deepcopy(board)
+            new_board[i - 1][j + 1] = board[i][j]
+            new_board[i][j] = 0
+            moves.append(new_board)
 
-        # left diagonal capture
-        if j - 1 >= 0 and i - 1 >= 0:
-            # if the piece to be captured is an opponent
-            if board[i - 1][j - 1] < 0:
-                new_board = deepcopy(board)
-                new_board[i - 1][j - 1] = 1
-                new_board[i][j] = 0
-                moves.append(new_board)
-                print("left capture")
-
-        # right diagonal capture
-        if j + 1 <= 7 and i - 1 >= 0:
-            # if the piece to be captured is an opponent
-            if board[i - 1][j + 1] < 0:
-                new_board = deepcopy(board)
-                new_board[i - 1][j + 1] = 1
-                new_board[i][j] = 0
-                moves.append(new_board)
-                print("right capture")
-
-    # if the piece is a capital pawn - P
+    # if the piece is capital pawn i.e. 'P' (-1)
     if board[i][j] == -1:
-
-        # regular move
-        if board[i + 1][j] == 0:
+        # if there is a scope to attack
+        if board[i + 1][j - 1] > 0:
             new_board = deepcopy(board)
-            new_board[i + 1][j] = -1
+            new_board[i + 1][j - 1] = board[i][j]
             new_board[i][j] = 0
             moves.append(new_board)
-            print("regular move")
-
-        # left diagonal capture
-        if j - 1 >= 0 and i + 1 <= 7:
-            # if the piece to be captured is an opponent
-            if board[i + 1][j - 1] > 0:
-                new_board = deepcopy(board)
-                new_board[i + 1][j - 1] = -1
-                new_board[i][j] = 0
-                moves.append(new_board)
-                print("left capture")
-
-        # right diagonal capture
-        if j + 1 <= 7 and i + 1 <= 7:
-            # if the piece to be captured is an opponent
-            if board[i + 1][j + 1] > 0:
-                new_board = deepcopy(board)
-                new_board[i + 1][j + 1] = -1
-                new_board[i][j] = 0
-                moves.append(new_board)
-                print("right capture")
-
-    # if the piece is a small rook - r
-    if board[i][j] == 2:
-
-        # all the moves in left
-        for x in range(j - 1, -1, -1):
-            # if it encounters something other than a blank space
-            if board[i][x] != 0:
-                # if the other thing is an opponent
-                if board[i][x] < 0:
-                    new_board = deepcopy(board)
-                    new_board[i][x] = 2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
+        if board[i + 1][j + 1] > 0:
             new_board = deepcopy(board)
-            new_board[i][x] = 2
+            new_board[i + 1][j + 1] = board[i][j]
             new_board[i][j] = 0
             moves.append(new_board)
-
-        # all the moves in right
-        for x in range(j + 1, 8):
-            # if it encounters something other than a blank space
-            if board[i][x] != 0:
-                # if the other thing is an opponent
-                if board[i][x] < 0:
-                    new_board = deepcopy(board)
-                    new_board[i][x] = 2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[i][x] = 2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in up
-        for x in range(i-1, -1,-1):
-            # if it encounters something other than a blank space
-            if board[x][j] != 0:
-                # if the other thing is an opponent
-                if board[x][j] < 0:
-                    new_board = deepcopy(board)
-                    new_board[x][j] = 2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][j] = 2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in down
-        for x in range(i + 1, 8):
-            # if it encounters something other than a blank space
-            if board[x][j] != 0:
-                # if the other thing is an opponent
-                if board[x][j] < 0:
-                    new_board = deepcopy(board)
-                    new_board[x][j] = 2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][j] = 2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-    # if the piece is a capital rook - R
-    if board[i][j] == -2:
-
-        # all the moves in left
-        for x in range(j - 1, -1, -1):
-            # if it encounters something other than a blank space
-            if board[i][x] != 0:
-                # if the other thing is an opponent
-                if board[i][x] > 0:
-                    new_board = deepcopy(board)
-                    new_board[i][x] = -2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[i][x] = -2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in right
-        for x in range(j + 1, 8):
-            # if it encounters something other than a blank space
-            if board[i][x] != 0:
-                # if the other thing is an opponent
-                if board[i][x] > 0:
-                    new_board = deepcopy(board)
-                    new_board[i][x] = -2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[i][x] = -2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in up
-        for x in range(i - 1, -1, -1):
-            # if it encounters something other than a blank space
-            if board[x][j] != 0:
-                # if the other thing is an opponent
-                if board[x][j] > 0:
-                    new_board = deepcopy(board)
-                    new_board[x][j] = -2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][j] = -2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in down
-        for x in range(i + 1, 8):
-            # if it encounters something other than a blank space
-            if board[x][j] != 0:
-                # if the other thing is an opponent
-                if board[x][j] > 0:
-                    new_board = deepcopy(board)
-                    new_board[x][j] = -2
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][j] = -2
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-    # if the piece is a small bishop - b
-    if board[i][j] == 4:
-
-        # all the moves in left upper diagonal
-        for x,y in zip(range(i-1,-1,-1),range(j-1,-1,-1)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] < 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = 4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = 4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in right upper diagonal
-        for x,y in zip(range(i-1,-1,-1),range(j+1,8)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] < 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = 4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = 4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in lower left
-        for x,y in zip(range(i+1,8),range(j-1,-1,-1)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] < 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = 4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = 4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in lower right
-        for x,y in zip(range(i+1,8),range(j+1,8)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] < 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = 4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = 4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-    # if the piece is a capital bishop - B
-    if board[i][j] == -4:
-
-        # all the moves in left upper diagonal
-        for x, y in zip(range(i - 1, -1, -1), range(j - 1, -1, -1)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] > 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = -4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = -4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in right upper diagonal
-        for x, y in zip(range(i - 1, -1, -1), range(j + 1, 8)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] > 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = -4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = -4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in lower left
-        for x, y in zip(range(i + 1, 8), range(j - 1, -1, -1)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] > 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = -4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = -4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-        # all the moves in lower right
-        for x, y in zip(range(i + 1, 8), range(j + 1, 8)):
-            # if it encounters something other than a blank space
-            if board[x][y] != 0:
-                # if the other thing is an opponent
-                if board[x][y] > 0:
-                    new_board = deepcopy(board)
-                    new_board[x][y] = -4
-                    new_board[i][j] = 0
-                    moves.append(new_board)
-                break
-            new_board = deepcopy(board)
-            new_board[x][y] = -4
-            new_board[i][j] = 0
-            moves.append(new_board)
-
-    # if the piece is a small knight -n
-    if board[i][j] == 3:
-        # 2 moves in upper left side
-        if i-1 >=0 and j-2 >= 0:
-            if board[i-1][j-2] <= 0:
-                new_board = deepcopy(board)
-                new_board[i-1][j-2] = 3
-                new_board[i][j] = 0
 
     return moves
 
@@ -430,14 +163,15 @@ def move(board, index):
 if __name__ == '__main__':
     input_board = convert_to_board(sys.argv[1])
     input_board = [[-2, -3, -4, -5, -6, -4, -3, -2],
-                   [0, -1, -1, -1, -1, -1, -1, -1],
-                   [0, -1, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, -1, 0, 0, 0],
-                   [0, 0, 0, -4, 0, 0, 0, 0],
-                   [0, 0, 0, 0, -1, 0, 0, 0],
+                   [-1, -1, -1, -1, -1, -1, -1, -1],
+                   [0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 1, 0, 5, 0, -1, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0],
                    [1, 1, 1, 1, 1, 1, 1, 1],
                    [2, 3, 4, 5, 6, 4, 3, 2]]
 
     moves = move(input_board, (4, 3))
-    for m in moves:
-        visualize_board(m)
+    if moves != None:
+        for m in moves:
+            visualize_board(m)
