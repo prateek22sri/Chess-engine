@@ -26,7 +26,7 @@ class chess:
             99999: [[(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)], 1]
         }
         self.horizon = 0
-        self.h = 3
+        self.h = 5
         self.neg_inf = -99999999
         self.inf = 99999999
         self.global_turn = sys.argv[1]
@@ -66,6 +66,38 @@ class chess:
         n = 8
         board = [tmp[i:i + n] for i in range(0, len(tmp), n)]
         return board
+
+    def convert_to_string(self):
+        res = ""
+        for i in self.board:
+            for j in i:
+                if j == -1:
+                    res += 'p'
+                elif j == -25:
+                    res += 'r'
+                elif j == -150:
+                    res += 'n'
+                elif j == -400:
+                    res += 'b'
+                elif j == -5000:
+                    res += 'q'
+                elif j == -99999:
+                    res += 'k'
+                elif j == 1:
+                    res += 'P'
+                elif j == 25:
+                    res += 'R'
+                elif j == 150:
+                    res += 'N'
+                elif j == 400:
+                    res += 'B'
+                elif j == 5000:
+                    res += 'Q'
+                elif j == 99999:
+                    res += 'K'
+                else:
+                    res += '.'
+        print(res)
 
     def visualize_board(self, board):
         str = ""
@@ -187,39 +219,83 @@ class chess:
     def isTerminal(self):
         return False
 
-    def player(self, move=None, max_min=0, depth=0):
-        self.counter += 1
-        vals = []
+    def alpha_beta_decision(self):
         actions = []
-        if self.horizon == depth:
-            return None, self.sum_board()
-
-        for sprime in self.successor(max_min):
+        vals = []
+        for sprime in self.successor(0):
             self.make_move(sprime)
-            action, val = self.player(move=sprime, max_min=abs(1 - max_min), depth=depth + 1)
-            actions.append(action)
+            val = self.min_value(move=sprime, alpha=self.neg_inf, beta=self.inf, depth=0)
             vals.append(val)
+            actions.append(sprime)
             self.unmake_move()
-        if max_min == 1 and vals:
-            ind = vals.index(min(vals))
-        elif max_min == 0 and vals:
-            ind = vals.index(max(vals))
-        else:
-            print("Error")
-            self.visualize_board(self.board)
+        ind = vals.index(max(vals))
+        return actions[ind]
 
-        if depth == 1:
-            return move, vals[ind]
-        if depth == 0:
-            print("val=", vals[ind], "and action=", actions[ind])
-        else:
-            return None, vals[ind]
+    def max_value(self, move, alpha, beta, depth):
+        depth += 1
+        if self.horizon == depth:
+            return self.sum_board()
+        if self.isTerminal():
+            return self.sum_board()
+        for sprime in self.successor(0):
+            self.make_move(sprime)
+            alpha = max(alpha, self.min_value(sprime, alpha, beta, depth))
+            self.unmake_move()
+            if alpha >= beta:
+                return beta
+        return beta
+
+    def min_value(self, move, alpha, beta, depth):
+        depth += 1
+        if self.horizon == depth:
+            return self.sum_board()
+        if self.isTerminal():
+            return self.sum_board()
+        for sprime in self.successor(1):
+            self.make_move(sprime)
+            beta = min(beta, self.max_value(sprime, alpha, beta, depth))
+            self.unmake_move()
+            if alpha >= beta:
+                return beta
+        return beta
+
+    # def player(self, move=None, max_min=0, depth=0):
+    #     self.counter += 1
+    #     vals = []
+    #     actions = []
+    #     if self.horizon == depth:
+    #         return None, self.sum_board()
+    #
+    #     for sprime in self.successor(max_min):
+    #         self.make_move(sprime)
+    #         action, val = self.player(move=sprime, max_min=abs(1 - max_min), depth=depth + 1)
+    #         actions.append(action)
+    #         vals.append(val)
+    #         self.unmake_move()
+    #
+    #     if max_min == 1 and vals:
+    #         ind = vals.index(min(vals))
+    #     elif max_min == 0 and vals:
+    #         ind = vals.index(max(vals))
+    #     else:
+    #         print("Error")
+    #         self.visualize_board(self.board)
+    #
+    #     if depth == 1:
+    #         return move, vals[ind]
+    #     if depth == 0:
+    #         print("val=", vals[ind], "and action=", actions[ind])
+    #     else:
+    #         return None, vals[ind]
 
     def main(self):
         self.board = self.convert_to_board(sys.argv[2])
         for h in range(2, self.h):
             self.horizon = h
-            self.player()
+            # self.player()         # minmax without alpha beta
+            move = self.alpha_beta_decision()
+            self.make_move(move)
+            self.convert_to_string()
 
 
 if __name__ == '__main__':

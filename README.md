@@ -1,15 +1,9 @@
 # Game of chess
+
+### 2017-11-03
+
 Author: Prateek Srivastava  
-Discussion Acknowledgements: Jeshuran Thangaraj
+Discussion Acknowledgements: Jeshuran Thangaraj  
+Algorithm Acknowledgements: Prof. David Crandall, CSCI-B551, IU  
 
 ### Notes:
-1. Pawns
-    - three moves possible by the pawn
-        * regular forward move
-        * diagonal left and right capture
-    - the first move is always 1 step
-    
-2. Rooks
-    - 
-    
-
