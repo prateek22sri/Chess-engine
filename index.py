@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 This is an implementation of chess using minimax and alpha-beta pruning
 Author : Prateek Srivastava
@@ -26,7 +26,7 @@ class chess:
             99999: [[(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)], 1]
         }
         self.horizon = 0
-        self.h = 5
+        self.h = 7
         self.neg_inf = -99999999
         self.inf = 99999999
         self.global_turn = sys.argv[1]
